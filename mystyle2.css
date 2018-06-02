@@ -1,0 +1,51 @@
+body {
+	background-image: url("./images/dc.jpg");
+	background-size: cover;
+}
+hr {
+	color: blue;
+}
+p {
+	color: green;
+	font-family: arial;
+	background-color: white;
+}
+#alien {
+	background-image: url("./images/enemy.png");
+	position: absolute;
+	height:50px;
+	width:50px;
+	left:0px;
+	top:0px;
+}
+div.base {
+	background-color: grey;
+	position: absolute;
+}
+#ship {
+	background-image: url("./images/hero.png");
+	position: absolute;
+	height:50px;
+	width:50px;
+	left:0px;
+	top:0px;
+}
+#field {
+	position: relative;
+	width:500px;
+	height:400px;
+	background-image: url("./images/space.jpg");
+	overflow: hidden;
+}
+div#missiles {
+    width: 500px;
+    height: 400px;
+    position: absolute;
+}
+
+div.missile {
+    width: 10px;
+    height: 28px;
+    background-image: url('./images/missile1.png');
+    position: absolute;
+}
