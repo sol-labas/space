@@ -102,7 +102,11 @@ function createGame() {
                 let self = this;
                 this.moveMissiles();
                 if (!this.moveAliens()) {
-                    alert("Game over");
+                    this.finishGame();
+                    return;
+                }
+                if (!this.detectCollisions()) {
+                    this.finishGame();
                     return;
                 }
                 this.render();
@@ -157,6 +161,7 @@ function createGame() {
                     moveDown = true;
                 }
                 if (dim.maxY >= BASE_OFFSET - ALIEN_HEIGHT) {
+                    alert("Game over");
                     return false;
                 }
                 for (i=0; i<ALIEN_CNT_X; i++) {
@@ -203,10 +208,88 @@ function createGame() {
                 return elem;
             },
 
-            moveMissiles() {
-                for(var i = 0 ; i < this.missiles.length ; i++ ) {
+            moveMissiles: function() {
+                for (var i = 0 ; i < this.missiles.length ; i++ ) {
                     this.missiles[i].y = this.missiles[i].y + this.missiles[i].dir;
                 }
+            },
+
+            detectCollisions: function() {
+                missileLoop:
+                for (var i = 0 ; i < this.missiles.length ; i++ ) {
+                    if (this.missiles[i].dir > 0) {
+                        //Alien missiles     
+                        if (this.missiles[i].y > this.board.height) {
+                            // missile missed
+                            this.missiles[i].svgElmt.remove();
+                            this.missiles.splice(i, 1);
+                            continue missileLoop;
+                        } else if (
+                            this.missiles[i].y >= this.ship.y &&
+                            this.missiles[i].y <= this.ship.y + this.ship.height &&
+                            this.missiles[i].x >= this.ship.x &&
+                            this.missiles[i].x <= this.ship.x + this.ship.width 
+                        ) {
+                            this.missiles[i].svgElmt.remove();
+                            this.missiles.splice(i, 1);
+                            alert("You loose!!!!");
+                            return false;
+                        }
+                    } else {
+                        // Ship missiles
+                        let aliensCnt = 0;
+                        for (j=0; j<ALIEN_CNT_X; j++) {
+                            for (k=0; k<ALIEN_CNT_Y; k++) {
+                                if (typeof this.aliens[j][k] === "undefined") {
+                                    continue;
+                                }
+                                if (
+                                    this.missiles[i].y >= this.aliens[j][k].y &&
+                                    this.missiles[i].y <= this.aliens[j][k].y + this.aliens[j][k].height &&
+                                    this.missiles[i].x >= this.aliens[j][k].x &&
+                                    this.missiles[i].x <= this.aliens[j][k].x + this.aliens[j][k].width 
+                                ) {
+                                    this.missiles[i].svgElmt.remove();
+                                    this.missiles.splice(i, 1);
+                                    this.alienDestroy(j, k);
+                                    continue missileLoop;
+                                } else {
+                                    aliensCnt++;
+                                }      
+                            }
+                        }
+                        if (aliensCnt == 0) {
+                            alert("You won!");
+                            return false;
+                        }
+                    }
+                    for (var j = 0; j < this.bases.length; j++) {
+                        console.log(this.missiles[i])
+                        if (
+                            this.missiles[i].y >= this.bases[j].y &&
+                            this.missiles[i].y <= this.bases[j].y + this.bases[j].height &&
+                            this.missiles[i].x >= this.bases[j].x &&
+                            this.missiles[i].x <= this.bases[j].x + this.bases[j].width 
+                        ) {
+                            this.missiles[i].svgElmt.remove();
+                            this.missiles.splice(i, 1);
+                            this.baseDestroy(j);
+                            continue missileLoop;
+                        }
+
+                    }
+                }
+                return true;
+            },
+
+            baseDestroy: function(j) {
+                this.bases[j].svgElmt.remove();
+                this.bases.splice(j, 1);
+            },
+            
+            alienDestroy: function(i, y) {
+                this.aliens[i][y].svgElmt.remove();
+                this.aliens[i].splice(y, 1);
             },
 
             render: function() {
