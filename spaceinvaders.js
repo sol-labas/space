@@ -18,9 +18,6 @@ var MISSILE_WIDTH = 5;
 var MISSILE_HEIGHT = 10;
 var MISSILE_SPEED = 20;
 
-// Game object
-var game  = null;
-
 function createGame() {
     //try {
         let game = {
@@ -40,12 +37,19 @@ function createGame() {
             aliens: [],
             missiles: [],
             dir: ALIEN_HSPEED,
+            halt: false,
+            score: 0,
 
             initGame: function() {
+                this.loadResourses();
+
                 this.board.svgElmt = document.getElementById("svgBoard");
                 this.ship.svgElmt = document.getElementById("ship");
                 this.ship.x = this.board.width/2 - this.ship.width/2;
                 this.ship.y = this.board.height - this.ship.height;
+                let svgBackground = document.getElementById("svgBackground");
+                svgBackground.setAttribute("width", this.board.width + "");
+                //svgBackground.setAttribute("height", this.board.height/2 + "");
 
                 for (i=0; i<3; i++) {
                     this.bases[i] = {
@@ -98,22 +102,68 @@ function createGame() {
                 this.ship.svgElmt.setAttribute("y", this.ship.y + "");
             },
 
+            loadResourses: function() {
+                //load alien
+                let alienSVG = this.loadSVG("images/alien.svg");
+                let shipSVG = this.loadSVG("images/ship.svg");
+                let baseSVG = this.loadSVG("images/base.svg");
+
+                shipSVG.setAttribute("id", "ship");
+
+                // Hide them initially
+                shipSVG.setAttribute("width", 1+"");
+                shipSVG.setAttribute("x", -100+"");
+                baseSVG.setAttribute("width", 1+"");
+                baseSVG.setAttribute("x", -100+"");
+                alienSVG.setAttribute("width", 1+"");
+                alienSVG.setAttribute("x", -100+"");
+
+                document.getElementById("svgBoard").appendChild(shipSVG);
+
+                for (let i = 0; i < 3; i++) {
+                    let base = baseSVG.cloneNode(true);
+                    base.setAttribute("id", "base"+i);
+                    document.getElementById("svgBoard").appendChild(base);
+                }
+
+                for (j=0; j<ALIEN_CNT_X; j++) {
+                    for (k=0; k<ALIEN_CNT_Y; k++) {
+                        let alien = alienSVG.cloneNode(true);
+                        alien.setAttribute("id", "alien"+j+""+k);
+                        document.getElementById("svgBoard").appendChild(alien);
+                    }
+                }
+            },
+
+            loadSVG: function(file) {
+                xhr = new XMLHttpRequest();
+                xhr.open("GET",file,false);
+                // Following line is just to be on the safe side;
+                // not needed if your server delivers SVG with correct MIME type
+                xhr.overrideMimeType("image/svg+xml");
+                xhr.send("");
+                return xhr.responseXML.documentElement;
+            },
+
             gameLoop: function() {
                 let self = this;
                 this.moveMissiles();
                 if (!this.moveAliens()) {
-                    this.finishGame();
                     return;
                 }
                 if (!this.detectCollisions()) {
-                    this.finishGame();
                     return;
                 }
                 this.render();
+                if (!this.halt) {
+                    setTimeout(function() {
+                        self.gameLoop();
+                    }, 100);
+                }
+            },
 
-                setTimeout(function() {
-                    self.gameLoop();
-                }, 100);
+            stop: function() {
+                this.halt = true;
             },
 
             getAliensDims() {
@@ -151,12 +201,12 @@ function createGame() {
             moveAliens: function (){
                 let dim = this.getAliensDims();
                 let moveDown = false;
-                if (dim.minX <= 0) {
+                if (dim.minX <= 0 + ALIEN_WIDTH) {
                     this.dir = ALIEN_HSPEED;
                     moveDown = true;
 
                 }
-                else if (dim.maxX > this.board.width - ALIEN_WIDTH) {
+                else if (dim.maxX > this.board.width - 2*ALIEN_WIDTH) {
                     this.dir = -ALIEN_HSPEED;
                     moveDown = true;
                 }
@@ -175,10 +225,10 @@ function createGame() {
                         }
 
                         // FIRE
-                        if (Math.random() > 0.995) {
+                        if (Math.random() > 0.995-(this.score*0.000005)) {
                             let missileX = this.aliens[i][y].x + ALIEN_WIDTH/2;
                             let missileY = this.aliens[i][y].y;
-                            let svgMissile = this.createMissileSVG(missileX, missileY, "blue");
+                            let svgMissile = this.createMissileSVG(missileX, missileY, "red");
         
                             this.board.svgElmt.appendChild(svgMissile);
         
@@ -233,6 +283,7 @@ function createGame() {
                             this.missiles[i].svgElmt.remove();
                             this.missiles.splice(i, 1);
                             alert("You loose!!!!");
+                            finishGame(this.score);
                             return false;
                         }
                     } else {
@@ -252,6 +303,7 @@ function createGame() {
                                     this.missiles[i].svgElmt.remove();
                                     this.missiles.splice(i, 1);
                                     this.alienDestroy(j, k);
+                                    this.score += 100;
                                     continue missileLoop;
                                 } else {
                                     aliensCnt++;
@@ -260,11 +312,11 @@ function createGame() {
                         }
                         if (aliensCnt == 0) {
                             alert("You won!");
+                            finishGame(this.score);
                             return false;
                         }
                     }
                     for (var j = 0; j < this.bases.length; j++) {
-                        console.log(this.missiles[i])
                         if (
                             this.missiles[i].y >= this.bases[j].y &&
                             this.missiles[i].y <= this.bases[j].y + this.bases[j].height &&
@@ -296,6 +348,7 @@ function createGame() {
                 this.ship.svgElmt.setAttribute("x", this.ship.x + "");
                 this.renderAliens();
                 this.renderMissiles();
+                this.renderScore();
             },
 
             renderAliens: function() {
@@ -316,6 +369,10 @@ function createGame() {
                    this.missiles[i].svgElmt.setAttribute("x", this.missiles[i].x + "");
                    this.missiles[i].svgElmt.setAttribute("y", this.missiles[i].y + "");
                 }
+            },
+
+            renderScore: function() {
+                document.getElementById("svgScore").textContent = "Score: " + this.score;
             },
 
             keyHandler: function(evt) {
@@ -340,7 +397,7 @@ function createGame() {
 
                     let x = this.ship.x + this.ship.width/2;
                     let y = this.ship.y;
-                    let svgMissile = this.createMissileSVG(x, y, "yellow");
+                    let svgMissile = this.createMissileSVG(x, y, "blue");
 
                     this.board.svgElmt.appendChild(svgMissile);
 
@@ -360,10 +417,16 @@ function createGame() {
     return null;
 }
 
+let game = null;
 function gameStart() {
     game = createGame();
     game.initGame();
     game.gameLoop();
+}
 
-
+function finishGame(score) {
+    game.stop();
+    if (score) {
+        submitScore(score);
+    }
 }

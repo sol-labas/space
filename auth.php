@@ -14,6 +14,10 @@ function isLogin()
     return !empty($_SESSION["login"]);
 }
 
+function getUser() {
+    return $_SESSION["login"];
+}
+
 function logout() 
 {
     unset($_SESSION["login"]);

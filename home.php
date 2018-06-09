@@ -1,14 +1,19 @@
-<?php ?>
 <html>
   <head>
     <meta charset="utf-8">
     <title>Space Invaders</title>
     <link rel="stylesheet" type="text/css" href="mystyle2.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script type="text/javascript" src="spaceinvaders.js"></script>
     <script type="text/javascript">
       try
       {
         var backgroundHttpRequest = null;
+        var captchaDone = false;
+
+        function setCaptcha() {
+          captchaDone = true;
+        }
         function checkCookies()
         {
           <?php
@@ -87,13 +92,13 @@
         //*****************************************************************
         //  Screen management utilitu functions
 
-        function SetVisibleOfDivElements(  visibleDiv)
+        function SetVisibleOfDivElements(visibleDiv)
         {
            try
            {
               function  MakeVisible( elmt, visible)
               {
-                    elmt.style.visibility  =  visible? "visible": "hidden";
+                  elmt.style.display = visible ? "block": "none";
               }
 
               let divLogin    = document.getElementById( "Login");
@@ -107,7 +112,6 @@
               if( visibleDiv == "Login")
               {
                   MakeVisible( divLogin, true);
-                                    alert( "made Login visible")
               }
               else if( visibleDiv == "Register")
               {
@@ -150,6 +154,10 @@
         {
           try
           {
+            if (!captchaDone) {
+              alert("Invalid captcha");
+              return;
+            }
             let editFieldEmail      = document.getElementById( "loginEmail");
             let editFieldPassword   = document.getElementById( "loginPassword");
             let editFieldRememberMe = document.getElementById( "rememberMe");
@@ -178,12 +186,17 @@
           {
              alert( "Error: SubmitLogin error=" + ex);
           }
+          return false;
         }
 
         function SubmitRegistration()
         {
            try
            {
+              if (!captchaDone) {
+                alert("Invalid captcha");
+                return;
+              }
               let editFieldEmail      = document.getElementById("registerEmail");
               let editFieldPassword1  = document.getElementById("registerPassword1");
               let editFieldPassword2  = document.getElementById("registerPassword2");
@@ -249,82 +262,76 @@
              alert( "Error: SubmitLogout error=" + ex);
           }
         }
+
+        function submitScore(score) {
+          let message = JSON.stringify({"score": score});
+
+          let scoreRequset =  new XMLHttpRequest();
+          scoreRequset.addEventListener("load", updateLeaders);
+          scoreRequset.open( "post", "score.php", true);
+          scoreRequset.setRequestHeader( "Content-type", "application/json;charset=UTF-8");
+          scoreRequset.send( message);
+        }
+
+        function updateLeaders() {
+          let frame = document.getElementById("leadersFrame");
+          frame.src = frame.src;
+        }
       }
       catch( ex)
       {
         alert( "Exception caught: " + ex);
       }
+
+
     </script>
   </head>
 
   <body onload="checkCookies()">
-
-    <div id="Login" style="position:absolute;left:0px;top:0px;visibility:visible;">
+    <div class="panel">
+    <div id="Login" class="pane" style="display:block;">
+    <form id="LoginForm" onsubmit="SubmitLogin();return false;">
        Email address:<br>
        <input type="email" id="loginEmail" /><br><br>
        Password:<br>
        <input type="password" id="loginPassword" /><br><br>
        <input type="checkbox" id="rememberMe" />
        remember me<br><br>
-       <input type="submit" value="Submit" onclick="SubmitLogin();"/> <br><br>
+       <div style="overflow:hidden" class="g-recaptcha" data-callback="setCaptcha" data-sitekey="6Lf1Gl4UAAAAABZjB6P1PnOOWOe3cGxOFanZNZ23"></div>
+       <input type="submit" value="Submit"/> <br><br>
        <a href="javascript:ShowRegistration()">Register</a>
+    </form>
     </div>
 
-    <div id="Register" style="position:absolute;left:0px;top:0px;visibility:hidden;" >
+    <div id="Register" class="pane" >
        Email address:<br>
        <input type="email" id="registerEmail" /><br><br>
        Password:<br>
        <input type="password" id="registerPassword1" /><br><br>
        Repeat password:<br>
        <input type="password" id="registerPassword2" /><br><br>
+       <div style="overflow:hidden" class="g-recaptcha" data-callback="setCaptcha" data-sitekey="6Lf1Gl4UAAAAABZjB6P1PnOOWOe3cGxOFanZNZ23"></div>
        <input type="submit" value="Submit" onclick="SubmitRegistration()"/> <br><br>
        <a href="javascript:ShowLogin();">Login</a>
     </div>
 
-    <div id="Main"  style="position:absolute;left:0px;top:0px;visibility:hidden;">
+    <div id="Main" class="pane">
         <svg  version="1.1"
           baseProfile="full"
 		      width="600" height="400"
 		      id="svgBoard">
-          <rect id="alien00" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien01" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien02" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien03" x="60" y="60" width="100" height="40" fill="blue" />
-       
-          <rect id="alien10" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien11" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien12" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien13" x="60" y="60" width="100" height="40" fill="blue" />
-         
-          <rect id="alien20" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien21" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien22" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien23" x="60" y="60" width="100" height="40" fill="blue" />
-         
-          <rect id="alien30" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien31" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien32" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien33" x="60" y="60" width="100" height="40" fill="blue" />
-        
-          <rect id="alien40" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien41" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien42" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien43" x="60" y="60" width="100" height="40" fill="blue" />
-         
-          <rect id="alien50" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien51" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien52" x="60" y="60" width="100" height="40" fill="blue" />
-          <rect id="alien53" x="60" y="60" width="100" height="40" fill="blue" />
-
-          <rect id="base0" x="100" y="100" width="100" height="40" fill="red" />
-          <rect id="base1" x="100" y="100" width="100" height="40" fill="red" />
-          <rect id="base2" x="100" y="100" width="100" height="40" fill="red" />
-          <rect id="ship" x="120" y="120" width="100" height="40" fill="yellow" />
+          <image id="svgBackground" xlink:href="images/space.jpg" x="0" y="0" height="400" width="600"/>
+          <text id="svgScore" x = "50" y = "25" 
+            style="font-family: Tahoma,Verdana,Arial; font-size: 14px; fill: #ffffff;">
+          Score: 0
+          </text>
         </svg>
         <br/>
-
        <a href="javascript:SubmitLogout();" >Logout</a>
     </div>
-
+    
+    <div class="pane2">
+      <iframe id="leadersFrame" src="leaders.php"/>
+    </div>
   </body>
 </html>

@@ -49,3 +49,18 @@ div.missile {
     background-image: url('./images/missile1.png');
     position: absolute;
 }
+
+div.pane {
+	float: left;
+	width: 600px;
+	display:none;
+}
+
+div.pane2 {
+	float: left;
+	width: 600px;
+}
+iframe {
+	width: 600px;
+	height: 400px;
+}

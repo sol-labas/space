@@ -5,7 +5,7 @@
 	  session_start();
 	  require_once("db.php");
       require_once("auth.php");
-      
+
       function complexEnough($pass)
 	  {
 		  if( strlen( $pass) < 6)
@@ -23,7 +23,8 @@
           $emailAddr = $jsonContent[ 'Email'];
           $password = $jsonContent[ 'Password'];
           $rememberMe = $jsonContent[ 'RememberMe'];
-          $query = $db->prepare( "select password from users where email=:emailAddress");	
+
+          $query = $db->prepare( "select * from users where email=:emailAddress");	
           $query->bindParam( ':emailAddress', $emailAddr);					
           $query->execute();					
           $row = $query->fetch(PDO::FETCH_ASSOC);
